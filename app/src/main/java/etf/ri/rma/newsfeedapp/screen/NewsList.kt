@@ -30,16 +30,16 @@ fun NewsList(newsItems: List<NewsItem>, modifier: Modifier = Modifier) {
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .testTag("news_list"), // Adding test tag
+            .testTag("news_list"),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         contentPadding = PaddingValues(8.dp)
     ) {
         items(newsItems) { newsItem ->
             if (newsItem.isFeatured) {
-                // Use FeaturedNewsCard for featured news
+
                 FeaturedNewsCard(newsItem = newsItem)
             } else {
-                // Use StandardNewsCard for non-featured news
+
                 StandardNewsCard(newsItem = newsItem)
             }
         }

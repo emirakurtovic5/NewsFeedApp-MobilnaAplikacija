@@ -16,8 +16,8 @@ private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
     secondary = PurpleGrey80,
     tertiary = Pink80,
-    background = Color(0xFF0A0A0A), // Darker background color
-    surface = Color(0xFF1A1A1A), // Adjusted surface color
+    background = Color(0xFF0A0A0A),
+    surface = Color(0xFF1A1A1A),
     onPrimary = Color.Black,
     onSecondary = Color.White,
     onTertiary = Color.White,
@@ -25,7 +25,7 @@ private val DarkColorScheme = darkColorScheme(
     onSurface = Color.White
 )
 
-// Define the light color scheme
+
 private val LightColorScheme = lightColorScheme(
     primary = Purple40,
     secondary = PurpleGrey40,
@@ -39,7 +39,7 @@ private val LightColorScheme = lightColorScheme(
     onSurface = Color.Black
 )
 
-// Theme composable function
+
 @Composable
 fun NewsTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -47,12 +47,12 @@ fun NewsTheme(
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
-        // Use dynamic colors if supported and enabled
+
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-        // Fallback to predefined color schemes
+
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }

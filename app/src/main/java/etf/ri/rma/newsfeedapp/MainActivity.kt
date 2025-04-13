@@ -14,7 +14,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             NewsTheme {
-                // Poziv funkcije NewsFeedScreen
+
                 NewsFeedScreen()
             }
         }
@@ -26,7 +26,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun PreviewNewsFeedScreen() {
     NewsTheme {
-        // Call NewsFeedScreen without parameters
+        
         NewsFeedScreen()
     }
 }

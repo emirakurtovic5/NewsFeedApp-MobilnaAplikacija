@@ -29,7 +29,7 @@ fun StandardNewsCard(newsItem: NewsItem) {
                 .padding(8.dp)
         ) {
             Image(
-                painter = painterResource(id = R.drawable.news), // Replace with your actual image resource
+                painter = painterResource(id = R.drawable.news),
                 contentDescription = "image",
                 modifier = Modifier
                     .size(100.dp)
@@ -49,7 +49,7 @@ fun StandardNewsCard(newsItem: NewsItem) {
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
                 Text(
-                    text = "${newsItem.source} · ${newsItem.publishedDate}", // Concatenate source and date
+                    text = "${newsItem.source} · ${newsItem.publishedDate}",
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )

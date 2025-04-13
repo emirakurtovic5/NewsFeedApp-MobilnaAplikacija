@@ -26,7 +26,7 @@ fun FeaturedNewsCard(newsItem: NewsItem) {
                 .padding(16.dp)
         ) {
             Image(
-                painter = painterResource(id = R.drawable.news), // Replace with your actual image resource
+                painter = painterResource(id = R.drawable.news),
                 contentDescription = "image",
                 modifier = Modifier
                     .fillMaxWidth()
@@ -38,12 +38,12 @@ fun FeaturedNewsCard(newsItem: NewsItem) {
                 modifier = Modifier.padding(top = 8.dp)
             )
             Text(
-                text = newsItem.snippet, // Display the snippet
+                text = newsItem.snippet,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(top = 4.dp)
             )
             Text(
-                text = "${newsItem.source} · ${newsItem.publishedDate}", // Concatenate source and date
+                text = "${newsItem.source} · ${newsItem.publishedDate}",
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(top = 4.dp)
             )

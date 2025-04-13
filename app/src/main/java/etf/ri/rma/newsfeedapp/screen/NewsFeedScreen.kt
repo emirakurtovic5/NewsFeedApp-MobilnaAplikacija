@@ -31,13 +31,13 @@ import androidx.compose.ui.platform.testTag
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun NewsFeedScreen() {
-    // Fetch all news once
+
     val allNews = remember { NewsData.getAllNews() }
     val categories = listOf("Sve", "Politika", "Sport", "Nauka/tehnologija", "Moda")
     var selectedCategory by remember { mutableStateOf("Sve") }
     var filteredNews by remember { mutableStateOf(allNews) }
 
-    // Update filtered news when the selected category changes
+
     LaunchedEffect(selectedCategory) {
         filteredNews = if (selectedCategory == "Sve") {
             allNews
@@ -51,7 +51,7 @@ fun NewsFeedScreen() {
         color = MaterialTheme.colorScheme.background
     ) {
         Column {
-            // Filter Chips
+
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -81,7 +81,7 @@ fun NewsFeedScreen() {
                 }
             }
 
-            // Display filtered news
+
             if (filteredNews.isEmpty()) {
                 MessageCard(message = "Nema pronađenih vijesti u kategoriji $selectedCategory")
             } else {
