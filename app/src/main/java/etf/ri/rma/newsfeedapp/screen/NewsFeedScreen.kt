@@ -36,13 +36,20 @@ fun NewsFeedScreen() {
     val categories = listOf("Sve", "Politika", "Sport", "Nauka/tehnologija", "Moda")
     var selectedCategory by remember { mutableStateOf("Sve") }
     var filteredNews by remember { mutableStateOf(allNews) }
+    var sortAscending by remember { mutableStateOf(false) }
+    var sortDescending by remember { mutableStateOf(false) }
 
-
-    LaunchedEffect(selectedCategory) {
+    LaunchedEffect(selectedCategory, sortAscending, sortDescending) {
         filteredNews = if (selectedCategory == "Sve") {
             allNews
         } else {
             allNews.filter { it.category == selectedCategory }
+        }
+
+        filteredNews = when {
+            sortAscending -> filteredNews.sortedBy { it.publishedDate }
+            sortDescending -> filteredNews.sortedByDescending { it.publishedDate }
+            else -> filteredNews
         }
     }
 
@@ -51,6 +58,7 @@ fun NewsFeedScreen() {
         color = MaterialTheme.colorScheme.background
     ) {
         Column {
+
 
             Column(
                 modifier = Modifier
@@ -79,6 +87,33 @@ fun NewsFeedScreen() {
                         )
                     }
                 }
+            }
+
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilterChip(
+                    selected = sortAscending,
+                    onClick = {
+                        sortAscending = !sortAscending
+                        if (sortAscending) sortDescending = false
+                    },
+                    label = { Text("Datum ⇩") },
+                    modifier = Modifier.testTag("sort_chip_date_asc")
+                )
+                FilterChip(
+                    selected = sortDescending,
+                    onClick = {
+                        sortDescending = !sortDescending
+                        if (sortDescending) sortAscending = false
+                    },
+                    label = { Text("Datum ⇧") },
+                    modifier = Modifier.testTag("sort_chip_date_desc")
+                )
             }
 
 
