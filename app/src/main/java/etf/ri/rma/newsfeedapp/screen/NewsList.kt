@@ -25,7 +25,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.ui.platform.testTag
 
 @Composable
-fun NewsList(newsItems: List<NewsItem>, modifier: Modifier = Modifier) {
+fun NewsList(newsItems: List<NewsItem>, onNewsClick: (String) -> Unit, modifier: Modifier = Modifier) {
     Log.d("NewsList", "Number of items: ${newsItems.size}")
     LazyColumn(
         modifier = modifier
@@ -36,11 +36,9 @@ fun NewsList(newsItems: List<NewsItem>, modifier: Modifier = Modifier) {
     ) {
         items(newsItems) { newsItem ->
             if (newsItem.isFeatured) {
-
-                FeaturedNewsCard(newsItem = newsItem)
+                FeaturedNewsCard(news = newsItem, onClick = { onNewsClick(newsItem.id) })
             } else {
-
-                StandardNewsCard(newsItem = newsItem)
+                StandardNewsCard(news = newsItem, onClick = { onNewsClick(newsItem.id) })
             }
         }
     }

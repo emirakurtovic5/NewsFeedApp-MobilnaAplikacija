@@ -1,6 +1,7 @@
 package etf.ri.rma.newsfeedapp.screen
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,11 +18,23 @@ import etf.ri.rma.newsfeedapp.R
 import etf.ri.rma.newsfeedapp.model.NewsItem
 
 @Composable
-fun StandardNewsCard(newsItem: NewsItem) {
+fun StandardNewsCard(
+    news: NewsItem = NewsItem(
+        id = "0",
+        title = "Default Title",
+        snippet = "Default Snippet",
+        source = "Default Source",
+        publishedDate = "01-01-2023",
+        isFeatured = false,
+        category = "Default Category",
+        imageUrl = "default_image_url"
+    ), onClick: () -> Unit = {}
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
+            .clickable { onClick() }
     ) {
         Row(
             modifier = Modifier
@@ -39,17 +52,17 @@ fun StandardNewsCard(newsItem: NewsItem) {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = newsItem.title,
+                    text = news.title,
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
                 Text(
-                    text = newsItem.snippet,
+                    text = news.snippet,
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
                 Text(
-                    text = "${newsItem.source} · ${newsItem.publishedDate}",
+                    text = "${news.source} · ${news.publishedDate}",
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )

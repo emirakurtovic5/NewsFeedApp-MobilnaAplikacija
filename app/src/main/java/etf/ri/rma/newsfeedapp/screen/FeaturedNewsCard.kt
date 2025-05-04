@@ -1,4 +1,5 @@
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -14,11 +15,24 @@ import etf.ri.rma.newsfeedapp.R
 import etf.ri.rma.newsfeedapp.model.NewsItem
 
 @Composable
-fun FeaturedNewsCard(newsItem: NewsItem) {
+fun FeaturedNewsCard(
+    news: NewsItem = NewsItem(
+        id = "0",
+        title = "Default Title",
+        snippet = "Default Snippet",
+        source = "Default Source",
+        publishedDate = "01-01-2023",
+        isFeatured = true,
+        category = "Default Category",
+        imageUrl = "default_image_url"
+),
+    onClick: () -> Unit = {}
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
+            .clickable { onClick() }
     ) {
         Column(
             modifier = Modifier
@@ -33,17 +47,17 @@ fun FeaturedNewsCard(newsItem: NewsItem) {
                     .size(200.dp)
             )
             Text(
-                text = newsItem.title,
+                text = news.title,
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(top = 8.dp)
             )
             Text(
-                text = newsItem.snippet,
+                text = news.snippet,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(top = 4.dp)
             )
             Text(
-                text = "${newsItem.source} · ${newsItem.publishedDate}",
+                text = "${news.source} · ${news.publishedDate}",
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(top = 4.dp)
             )

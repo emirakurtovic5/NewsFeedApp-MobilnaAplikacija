@@ -5,8 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
-import etf.ri.rma.newsfeedapp.model.NewsItem
-import etf.ri.rma.newsfeedapp.screen.NewsFeedScreen
+import androidx.navigation.compose.rememberNavController
+import etf.ri.rma.newsfeedapp.screen.AppNavHost
 import etf.ri.rma.newsfeedapp.ui.theme.NewsTheme
 
 class MainActivity : ComponentActivity() {
@@ -14,19 +14,18 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             NewsTheme {
-
-                NewsFeedScreen()
+                val navController = rememberNavController()
+                AppNavHost(navController = navController)
             }
         }
     }
 }
 
-
 @Preview(showBackground = true)
 @Composable
 fun PreviewNewsFeedScreen() {
     NewsTheme {
-        
-        NewsFeedScreen()
+        val navController = rememberNavController()
+        AppNavHost(navController = navController)
     }
 }

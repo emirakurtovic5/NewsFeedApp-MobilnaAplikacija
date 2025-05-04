@@ -12,6 +12,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import etf.ri.rma.newsfeedapp.data.NewsData
+import etf.ri.rma.newsfeedapp.screen.FilterViewModel
 import etf.ri.rma.newsfeedapp.screen.NewsFeedScreen
 import org.junit.Before
 import org.junit.Rule
@@ -33,7 +34,10 @@ class TestS1 {
     @Before
     fun setContentForTests() {
         assertTrue (message = "Nemate dovoljno vijesti!", actual = NewsData.getAllNews().count()>=20)
-        composeTestRule.setContent { NewsFeedScreen() }
+        composeTestRule.setContent {
+            val filterViewModel: FilterViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+            NewsFeedScreen(filterViewModel = filterViewModel)
+        }
     }
 
 
