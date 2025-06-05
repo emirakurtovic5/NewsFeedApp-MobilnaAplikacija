@@ -10,6 +10,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import etf.ri.rma.newsfeedapp.data.NewsData
 import etf.ri.rma.newsfeedapp.screen.FilterViewModel
@@ -35,8 +36,14 @@ class TestS1 {
     fun setContentForTests() {
         assertTrue (message = "Nemate dovoljno vijesti!", actual = NewsData.getAllNews().count()>=20)
         composeTestRule.setContent {
-            val filterViewModel: FilterViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
-            NewsFeedScreen(filterViewModel = filterViewModel)
+            val filterViewModel: FilterViewModel = viewModel()
+            NewsFeedScreen(
+                filterViewModel = filterViewModel,
+                navigateToFilterScreen = TODO(),
+                filters = TODO(),
+                onNewsClick = TODO(),
+                newsDAO = TODO()
+            )
         }
     }
 

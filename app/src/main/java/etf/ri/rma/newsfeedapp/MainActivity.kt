@@ -6,6 +6,10 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
+//import etf.ri.rma.newsfeedapp.data.network.ImagaDAO
+import etf.ri.rma.newsfeedapp.data.network.NewsDAO
+import etf.ri.rma.newsfeedapp.data.RetrofitInstance
+import etf.ri.rma.newsfeedapp.data.network.ImagaDAO
 import etf.ri.rma.newsfeedapp.screen.AppNavHost
 import etf.ri.rma.newsfeedapp.ui.theme.NewsTheme
 
@@ -15,7 +19,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             NewsTheme {
                 val navController = rememberNavController()
-                AppNavHost(navController = navController)
+                val newsDAO: NewsDAO = NewsDAO(RetrofitInstance.newsApi)
+                val imaggaDAO: ImagaDAO = ImagaDAO(RetrofitInstance.imaggaApi)
+                AppNavHost(navController = navController, newsDAO = newsDAO, imaggaDAO = imaggaDAO)
             }
         }
     }
@@ -26,6 +32,8 @@ class MainActivity : ComponentActivity() {
 fun PreviewNewsFeedScreen() {
     NewsTheme {
         val navController = rememberNavController()
-        AppNavHost(navController = navController)
+        val newsDAO: NewsDAO = NewsDAO(RetrofitInstance.newsApi)
+        val imaggaDAO: ImagaDAO = ImagaDAO(RetrofitInstance.imaggaApi)
+        AppNavHost(navController = navController, newsDAO = newsDAO, imaggaDAO = imaggaDAO)
     }
 }

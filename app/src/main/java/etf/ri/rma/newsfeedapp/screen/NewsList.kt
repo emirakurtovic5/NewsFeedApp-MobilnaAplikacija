@@ -36,9 +36,9 @@ fun NewsList(newsItems: List<NewsItem>, onNewsClick: (String) -> Unit, modifier:
     ) {
         items(newsItems) { newsItem ->
             if (newsItem.isFeatured) {
-                FeaturedNewsCard(news = newsItem, onClick = { onNewsClick(newsItem.id) })
+                FeaturedNewsCard(news = newsItem, onClick = { onNewsClick(newsItem.uuid) })
             } else {
-                StandardNewsCard(news = newsItem, onClick = { onNewsClick(newsItem.id) })
+                StandardNewsCard(news = newsItem, onClick = { onNewsClick(newsItem.uuid) })
             }
         }
     }

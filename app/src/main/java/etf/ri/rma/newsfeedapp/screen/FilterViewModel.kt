@@ -15,4 +15,5 @@ class FilterViewModel : ViewModel() {
     fun updateCategory(category: String) {
         _selectedCategory.value = category
     }
+
 }

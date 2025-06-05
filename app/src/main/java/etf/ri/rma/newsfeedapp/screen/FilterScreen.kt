@@ -1,5 +1,6 @@
 package etf.ri.rma.newsfeedapp.screen
 
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,7 +35,12 @@ import androidx.compose.runtime.setValue
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
+import etf.ri.rma.newsfeedapp.data.RetrofitInstance
+import etf.ri.rma.newsfeedapp.data.network.api.NewsApiService
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -49,17 +55,19 @@ fun FilterScreen(
     filterViewModel: FilterViewModel,
     onBackPressed: () -> Unit
 ) {
-    val categories = listOf("Sve", "Politika", "Sport", "Nauka/tehnologija", "Moda")
+    val categories = listOf("Sve", "Politika", "Sport", "Nauka", "Tehnologija", "Zabava")
     val currentCategory by filterViewModel.selectedCategory.collectAsState()
     var tempSelectedCategory by remember { mutableStateOf(currentCategory) }
-    var showDatePicker by remember { mutableStateOf(false) }
+    var tempDateRange by remember { mutableStateOf(dateRange) }
+    var tempUnwantedWords by remember { mutableStateOf(unwantedWords) }
     var unwantedWordInput by remember { mutableStateOf("") }
+    var showDatePicker by remember { mutableStateOf(false) }
 
     if (showDatePicker) {
         DateRangePickerDialog(
             onDismissRequest = { showDatePicker = false },
             onDateSelected = { startDate, endDate ->
-                onDateRangeSelected(startDate, endDate)
+                tempDateRange = startDate to endDate // Update temporary date range
                 showDatePicker = false
             }
         )
@@ -72,7 +80,7 @@ fun FilterScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-
+            // Chip section remains unchanged
             Text("Kategorije", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
@@ -84,8 +92,9 @@ fun FilterScreen(
                         "Sve" -> "filter_chip_all"
                         "Politika" -> "filter_chip_pol"
                         "Sport" -> "filter_chip_spo"
-                        "Nauka/tehnologija" -> "filter_chip_sci"
-                        "Moda" -> "filter_chip_moda"
+                        "Nauka" -> "filter_chip_sci"
+                        "Tehnologija" -> "filter_chip_tech"
+                        "Zabava" -> "filter_chip_zabava"
                         else -> "filter_chip_none"
                     }
                     FilterChip(
@@ -108,14 +117,14 @@ fun FilterScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-
+            // Date range section
             Text("Opseg datuma", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = dateRange.let { "${it.first ?: "N/A"};${it.second ?: "N/A"}" },
+                    text = "${tempDateRange.first ?: "N/A"} to ${tempDateRange.second ?: "N/A"}",
                     modifier = Modifier
                         .weight(1f)
                         .testTag("filter_daterange_display"),
@@ -135,7 +144,7 @@ fun FilterScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-
+            // Unwanted words section
             Text("Nepoželjne riječi", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -158,8 +167,8 @@ fun FilterScreen(
                 Button(
                     onClick = {
                         val word = unwantedWordInput.trim()
-                        if (word.isNotEmpty() && unwantedWords.none { it.equals(word, ignoreCase = true) }) {
-                            onUnwantedWordAdded(word)
+                        if (word.isNotEmpty() && tempUnwantedWords.none { it.equals(word, ignoreCase = true) }) {
+                            tempUnwantedWords = tempUnwantedWords + word // Update temporary list
                             unwantedWordInput = ""
                         }
                     },
@@ -175,19 +184,18 @@ fun FilterScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-
             Column(modifier = Modifier.testTag("filter_unwanted_list")) {
-                unwantedWords.forEach { word ->
+                tempUnwantedWords.forEach { word ->
                     Text(text = word, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onBackground)
                 }
             }
         }
 
-
+        // Apply filters button
         Button(
             onClick = {
                 filterViewModel.updateCategory(tempSelectedCategory)
-                onApplyFilters(tempSelectedCategory, dateRange, unwantedWords)
+                onApplyFilters(tempSelectedCategory, tempDateRange, tempUnwantedWords) // Apply changes
             },
             modifier = Modifier
                 .fillMaxWidth()

@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+
 }
 
 android {
@@ -9,6 +10,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
+        multiDexEnabled = true
         applicationId = "etf.ri.rma.newsfeedapp"
         minSdk = 31
         targetSdk = 35
@@ -40,6 +42,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.tracing.perfetto.handshake)
     val nav_version = "2.8.9"
     implementation ("androidx.navigation:navigation-compose:$nav_version")
     implementation(libs.androidx.material3)
@@ -60,4 +63,14 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     androidTestImplementation("org.jetbrains.kotlin:kotlin-test-junit")
     testImplementation(kotlin("test"))
+    implementation("com.squareup.retrofit2:retrofit:+")
+    implementation("com.squareup.retrofit2:converter-gson:+")
+    implementation ("androidx.multidex:multidex:2.0.1")
+    implementation ("androidx.core:core-ktx:1.12.0")
+    implementation ("com.squareup.okhttp3:logging-interceptor:4.12.0")
+    implementation ("io.coil-kt:coil-compose:2.4.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:okhttp-tls:4.12.0") // For TLS features like HeldCertificate
+    androidTestImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
+
 }

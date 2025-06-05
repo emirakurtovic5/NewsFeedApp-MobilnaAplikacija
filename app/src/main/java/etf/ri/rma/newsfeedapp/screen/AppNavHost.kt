@@ -5,18 +5,26 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.NavHostController
 import androidx.lifecycle.viewmodel.compose.viewModel
+import etf.ri.rma.newsfeedapp.data.network.ImagaDAO
+import etf.ri.rma.newsfeedapp.data.network.NewsDAO
+import etf.ri.rma.newsfeedapp.dto.NewsArticleDTO
 
 @Composable
-fun AppNavHost(navController: NavHostController) {
+fun AppNavHost(
+    navController: NavHostController,
+    newsDAO: NewsDAO,
+    imaggaDAO: ImagaDAO
+) {
     val filterViewModel: FilterViewModel = viewModel()
 
     var dateRange by remember { mutableStateOf<Pair<String?, String?>>(null to null) }
     var unwantedWords by remember { mutableStateOf(listOf<String>()) }
-    var selectedCategory by remember { mutableStateOf("Sve") }
+    var selectedCategory by remember { mutableStateOf("general") }
 
     NavHost(navController = navController, startDestination = "/newsfeed") {
         composable("/newsfeed") {
             NewsFeedScreen(
+                newsDAO = newsDAO,
                 navigateToFilterScreen = { navController.navigate("/filters") },
                 filters = Triple(selectedCategory, dateRange, unwantedWords),
                 onNewsClick = { newsId -> navController.navigate("/details/$newsId") },
@@ -28,7 +36,9 @@ fun AppNavHost(navController: NavHostController) {
             NewsDetailsScreen(
                 newsId = newsId,
                 onBackToNewsFeed = { navController.popBackStack("/newsfeed", inclusive = false) },
-                onRelatedNewsClick = { relatedNewsId -> navController.navigate("/details/$relatedNewsId") }
+                onRelatedNewsClick = { relatedNewsId -> navController.navigate("/details/$relatedNewsId") },
+                newsDAO = newsDAO,
+                imaggaDAO = imaggaDAO
             )
         }
         composable("/filters") {
