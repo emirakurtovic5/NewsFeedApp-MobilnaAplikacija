@@ -27,7 +27,7 @@ fun NewsArticleDTO.toNewsItem(): NewsItem {
         val date = inputFormat.parse(this.publishedDate)
         SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(date)
     } catch (e: Exception) {
-        this.publishedDate // Fallback na originalni format
+        this.publishedDate
     }
 
     return NewsItem(

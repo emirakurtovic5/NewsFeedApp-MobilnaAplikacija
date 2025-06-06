@@ -1,6 +1,5 @@
 package etf.ri.rma.newsfeedapp.screen
 
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,12 +34,8 @@ import androidx.compose.runtime.setValue
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.rememberCoroutineScope
-import etf.ri.rma.newsfeedapp.data.RetrofitInstance
-import etf.ri.rma.newsfeedapp.data.network.api.NewsApiService
-import kotlinx.coroutines.launch
+import etf.ri.rma.newsfeedapp.model.NewsItem
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -67,7 +62,7 @@ fun FilterScreen(
         DateRangePickerDialog(
             onDismissRequest = { showDatePicker = false },
             onDateSelected = { startDate, endDate ->
-                tempDateRange = startDate to endDate // Update temporary date range
+                tempDateRange = startDate to endDate
                 showDatePicker = false
             }
         )
@@ -80,7 +75,7 @@ fun FilterScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-            // Chip section remains unchanged
+
             Text("Kategorije", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
@@ -117,7 +112,7 @@ fun FilterScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Date range section
+
             Text("Opseg datuma", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -144,7 +139,7 @@ fun FilterScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Unwanted words section
+
             Text("Nepoželjne riječi", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onBackground)
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -191,11 +186,13 @@ fun FilterScreen(
             }
         }
 
-        // Apply filters button
+
+        val onNewsClick: (NewsItem) -> Unit
         Button(
             onClick = {
                 filterViewModel.updateCategory(tempSelectedCategory)
                 onApplyFilters(tempSelectedCategory, tempDateRange, tempUnwantedWords) // Apply changes
+
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -209,8 +206,8 @@ fun FilterScreen(
         ) {
             Text("Primijeni filtere")
         }
-    }
-}
+
+    }}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
