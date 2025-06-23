@@ -23,9 +23,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import etf.ri.rma.newsfeedapp.data.NewsDatabase
 import etf.ri.rma.newsfeedapp.data.network.NewsDAO
 import etf.ri.rma.newsfeedapp.model.NewsItem
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -34,7 +39,8 @@ fun NewsFeedScreen(
     filters: Triple<String, Pair<String?, String?>, List<String>> = Triple("Sve", Pair(null, null), emptyList()),
     onNewsClick: (String) -> Unit = {},
     filterViewModel: FilterViewModel,
-    newsDAO: NewsDAO
+    newsDAO: NewsDAO,
+    database: NewsDatabase? = null
 ) {
     val selectedCategory by filterViewModel.selectedCategory.collectAsState()
     val (dateRange, unwantedWords) = filters.second to filters.third
@@ -49,55 +55,130 @@ fun NewsFeedScreen(
         "Tehnologija" to "tech",
         "Zabava" to "entertainment",
     )
+    val context = LocalContext.current
+
+
+    val dateFormatter = remember {
+        SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+    }
+
 
     LaunchedEffect(selectedCategory) {
         isLoading = true
         try {
-            allNews.value = if (selectedCategory == "Sve") {
-                newsDAO.getAllStories().distinctBy { it.uuid }
+
+            val localNews = if (selectedCategory == "Sve") {
+                database?.savedNewsDAO()?.getAllNewsWithTags() ?: emptyList()
             } else {
-                val backendCategory = categoryMap[selectedCategory] ?: throw IllegalArgumentException("Invalid category")
-                val topStories = newsDAO.getTopStoriesByCategory(backendCategory)
-                val allCategoryStories = newsDAO.getAllStories().filter { it.category == backendCategory }
-                (topStories + allCategoryStories).distinctBy { it.uuid }
+                val backendCategory = categoryMap[selectedCategory]
+                database?.savedNewsDAO()?.getNewsWithCategory(backendCategory ?: "") ?: emptyList()
             }
+
+
+            if (isOnline(context)) {
+                try {
+                    val onlineNews = if (selectedCategory == "Sve") {
+                        newsDAO.getAllStories()
+                    } else {
+                        newsDAO.getTopStoriesByCategory(categoryMap[selectedCategory] ?: "general")
+                    }
+
+
+                    onlineNews.forEach { newsItem ->
+                        database?.savedNewsDAO()?.saveNews(newsItem)
+                    }
+
+
+                    val combinedNews = (localNews + onlineNews).distinctBy { it.news.uuid }
+
+
+                    allNews.value = if (selectedCategory != "Sve") {
+
+                        val sortedNews = combinedNews.sortedByDescending {
+                            it.news.publishedDate?.let { date ->
+                                try { dateFormatter.parse(date) } catch (e: Exception) { null }
+                            }
+                        }
+
+                        sortedNews.mapIndexed { index, item ->
+                            if (index < 3) {
+                                item.copy(news = item.news.copy(isFeatured = true))
+                            } else {
+                                item.copy(news = item.news.copy(isFeatured = false))
+                            }
+                        }
+                    } else {
+
+                        combinedNews.map { item ->
+                            item.copy(news = item.news.copy(isFeatured = false))
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("NewsFeed", "Error fetching online news", e)
+                    allNews.value = localNews.map { item ->
+                        item.copy(news = item.news.copy(isFeatured = false))
+                    }
+                }
+            } else {
+                allNews.value = localNews.map { item ->
+                    item.copy(news = item.news.copy(isFeatured = false))
+                }
+            }
+
             filteredNews = allNews.value
         } catch (e: Exception) {
-            Log.e("NewsFeedScreen", "Error fetching news: ${e.message}")
+            Log.e("NewsFeed", "Error loading news", e)
+            allNews.value = emptyList()
+            filteredNews = emptyList()
         } finally {
             isLoading = false
         }
     }
 
+
     LaunchedEffect(allNews.value, dateRange, unwantedWords) {
         try {
             filteredNews = allNews.value.filter { newsItem ->
-                val newsDateStr = newsItem.publishedDate ?: ""
 
-                val isWithinDateRange = when {
-                    dateRange.first != null && dateRange.second != null ->
-                        newsDateStr >= dateRange.first!! && newsDateStr <= dateRange.second!!
-
-                    dateRange.first != null ->
-                        newsDateStr >= dateRange.first!!
-
-                    dateRange.second != null ->
-                        newsDateStr <= dateRange.second!!
-
-                    else -> true
+                val dateMatches = try {
+                    val newsDate = newsItem.news.publishedDate ?: ""
+                    when {
+                        dateRange.first != null && dateRange.second != null -> {
+                            val newsDateObj = dateFormatter.parse(newsDate)
+                            val startDateObj = dateFormatter.parse(dateRange.first)
+                            val endDateObj = dateFormatter.parse(dateRange.second)
+                            newsDateObj in startDateObj..endDateObj
+                        }
+                        dateRange.first != null -> {
+                            val newsDateObj = dateFormatter.parse(newsDate)
+                            val startDateObj = dateFormatter.parse(dateRange.first)
+                            newsDateObj >= startDateObj
+                        }
+                        dateRange.second != null -> {
+                            val newsDateObj = dateFormatter.parse(newsDate)
+                            val endDateObj = dateFormatter.parse(dateRange.second)
+                            newsDateObj <= endDateObj
+                        }
+                        else -> true
+                    }
+                } catch (e: Exception) {
+                    true
                 }
 
-                val doesNotContainUnwantedWords = unwantedWords.all { word ->
-                    !newsItem.title.contains(word, ignoreCase = true) &&
-                            !newsItem.snippet.contains(word, ignoreCase = true)
+
+                val wordsMatch = unwantedWords.all { word ->
+                    !newsItem.news.title.contains(word, ignoreCase = true) &&
+                            !newsItem.news.snippet.contains(word, ignoreCase = true)
                 }
 
-                isWithinDateRange && doesNotContainUnwantedWords
+                dateMatches && wordsMatch
             }
         } catch (e: Exception) {
-            Log.e("NewsFeedScreen", "Filter error: ${e.message}")
+            Log.e("NewsFeed", "Error filtering news", e)
+            filteredNews = allNews.value
         }
     }
+
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -116,37 +197,16 @@ fun NewsFeedScreen(
                 ) {
                     val categories = listOf("Sve", "Politika", "Sport", "Nauka", "Tehnologija", "Zabava")
                     categories.forEach { category ->
-                        val tag = when (category) {
-                            "Sve" -> "filter_chip_all"
-                            "Politika" -> "filter_chip_pol"
-                            "Sport" -> "filter_chip_spo"
-                            "Nauka" -> "filter_chip_sci"
-                            "Tehnologija" -> "filter_chip_tech"
-                            "Zabava" -> "filter_chip_zabava"
-                            else -> "filter_chip_none"
-                        }
                         FilterChip(
                             selected = selectedCategory == category,
-                            onClick = {
-                                Log.d("NewsFeedScreen", "Category updated to: $category")
-                                filterViewModel.updateCategory(category)
-                            },
-                            label = { Text(category) },
-                            modifier = Modifier.testTag(tag)
+                            onClick = { filterViewModel.updateCategory(category) },
+                            label = { Text(category) }
                         )
                     }
                     FilterChip(
                         selected = false,
-                        onClick = {
-                            try {
-                                Log.d("NewsFeedScreen", "Navigating to filter screen with category: $selectedCategory")
-                                navigateToFilterScreen(selectedCategory)
-                            } catch (e: Exception) {
-                                Log.e("NewsFeedScreen", "Error navigating to filter screen: ${e.message}")
-                            }
-                        },
-                        label = { Text("Više filtera ...") },
-                        modifier = Modifier.testTag("filter_chip_more")
+                        onClick = { navigateToFilterScreen(selectedCategory) },
+                        label = { Text("Više filtera ...") }
                     )
                 }
             }
@@ -156,25 +216,17 @@ fun NewsFeedScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "Učitavanje vijesti...",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
+                    Text("Učitavanje vijesti...")
                 }
             } else if (filteredNews.isEmpty()) {
-                Log.d("NewsFeedScreen", "No news found for category: $selectedCategory")
                 MessageCard(message = "Nema pronađenih vijesti u kategoriji $selectedCategory")
             } else {
-                Log.d("NewsFeedScreen", "Displaying news list with ${filteredNews.size} items")
-                filteredNews.forEach { newsItem ->
-                    Log.d("NewsFeedScreen", "News Item: ${newsItem.title}, Category: ${newsItem.category}")
-                }
                 NewsList(
                     newsItems = filteredNews,
-                    onNewsClick = onNewsClick,
-                    modifier = Modifier.testTag("news_list")
+                    onNewsClick = onNewsClick
                 )
             }
         }
     }
 }
+

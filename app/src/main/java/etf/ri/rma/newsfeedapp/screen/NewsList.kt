@@ -24,10 +24,10 @@ fun NewsList(newsItems: List<NewsItem>, onNewsClick: (String) -> Unit, modifier:
         contentPadding = PaddingValues(8.dp)
     ) {
         items(newsItems) { newsItem ->
-            if (newsItem.isFeatured) {
-                FeaturedNewsCard(news = newsItem, onClick = { onNewsClick(newsItem.uuid) })
+            if (newsItem.news.isFeatured) {
+                FeaturedNewsCard(newsItem = newsItem, onClick = { onNewsClick(newsItem.news.uuid) })
             } else {
-                StandardNewsCard(news = newsItem, onClick = { onNewsClick(newsItem.uuid) })
+                StandardNewsCard(newsItem = newsItem, onClick = { onNewsClick(newsItem.news.uuid) })
             }
         }
     }

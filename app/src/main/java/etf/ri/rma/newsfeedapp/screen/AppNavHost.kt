@@ -5,6 +5,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.NavHostController
 import androidx.lifecycle.viewmodel.compose.viewModel
+import etf.ri.rma.newsfeedapp.data.NewsDatabase
 import etf.ri.rma.newsfeedapp.data.network.ImagaDAO
 import etf.ri.rma.newsfeedapp.data.network.NewsDAO
 import etf.ri.rma.newsfeedapp.dto.NewsArticleDTO
@@ -13,7 +14,8 @@ import etf.ri.rma.newsfeedapp.dto.NewsArticleDTO
 fun AppNavHost(
     navController: NavHostController,
     newsDAO: NewsDAO,
-    imaggaDAO: ImagaDAO
+    imaggaDAO: ImagaDAO,
+    database: NewsDatabase
 ) {
     val filterViewModel: FilterViewModel = viewModel()
 
@@ -25,6 +27,7 @@ fun AppNavHost(
         composable("/newsfeed") {
             NewsFeedScreen(
                 newsDAO = newsDAO,
+                database = database,
                 navigateToFilterScreen = { navController.navigate("/filters") },
                 filters = Triple(selectedCategory, dateRange, unwantedWords),
                 onNewsClick = { newsId -> navController.navigate("/details/$newsId") },
@@ -35,6 +38,7 @@ fun AppNavHost(
             val newsId = backStackEntry.arguments?.getString("id") ?: return@composable
             NewsDetailsScreen(
                 newsId = newsId,
+                database = database,
                 onBackToNewsFeed = { navController.popBackStack("/newsfeed", inclusive = false) },
                 onRelatedNewsClick = { relatedNewsId -> navController.navigate("/details/$relatedNewsId") },
                 newsDAO = newsDAO,

@@ -1,7 +1,9 @@
 package etf.ri.rma.newsfeedapp.dto
 
 import com.google.gson.annotations.SerializedName
+import etf.ri.rma.newsfeedapp.model.News
 import etf.ri.rma.newsfeedapp.model.NewsItem
+import etf.ri.rma.newsfeedapp.model.Tags
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -30,7 +32,7 @@ fun NewsArticleDTO.toNewsItem(): NewsItem {
         this.publishedDate
     }
 
-    return NewsItem(
+    val news = News(
         uuid = this.uuid,
         title = this.title,
         snippet = this.snippet,
@@ -38,7 +40,15 @@ fun NewsArticleDTO.toNewsItem(): NewsItem {
         category = this.category.firstOrNull()?.lowercase() ?: "general",
         isFeatured = false,
         source = this.source,
-        publishedDate = formattedDate,
-        imageTags = arrayListOf()
+        publishedDate = formattedDate
+    )
+
+    val tags = this.category.mapIndexed { index, tag ->
+        Tags(id = index, value = tag)
+    }
+
+    return NewsItem(
+        news = news,
+        tags = tags
     )
 }

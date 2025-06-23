@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import etf.ri.rma.newsfeedapp.data.NewsDatabase
 import etf.ri.rma.newsfeedapp.data.network.ImagaDAO
 import etf.ri.rma.newsfeedapp.data.network.NewsDAO
 import etf.ri.rma.newsfeedapp.dto.NewsArticleDTO
@@ -37,39 +38,100 @@ fun NewsDetailsScreen(
     onBackToNewsFeed: () -> Unit,
     onRelatedNewsClick: (String) -> Unit,
     newsDAO: NewsDAO,
-    imaggaDAO: ImagaDAO
+    imaggaDAO: ImagaDAO,
+    database: NewsDatabase? = null
 ) {
     var newsItem by remember { mutableStateOf<NewsItem?>(null) }
     var relatedNews by remember { mutableStateOf<List<NewsItem>>(emptyList()) }
     var tags by remember { mutableStateOf<List<String>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorState by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
 
     LaunchedEffect(newsId) {
         try {
-            Log.d("NewsDetailsScreen", "Loading news details for UUID: $newsId")
-            val allStories = newsDAO.getAllStories()
-            newsItem = allStories.find { it.uuid == newsId }
+            if (isOnline(context)) {
 
-            if (newsItem == null) {
-                Log.e("NewsDetailsScreen", "News not found for UUID: $newsId")
-            } else {
-                Log.d("NewsDetailsScreen", "Found news item: ${newsItem!!.title}")
-            }
-            relatedNews = newsDAO.getSimilarStories(newsId)
-            Log.d("NewsDetailsScreen", "Related news: ${relatedNews.map { it.title }}")
+                val allStories = newsDAO.getAllStories()
+                allStories.forEach { database?.savedNewsDAO()?.saveNews(it) }
+                newsItem = allStories.find { it.news.uuid == newsId }
 
-            tags = newsItem?.imageUrl?.let { url ->
-                try {
-                    imaggaDAO.getTags(url)
+                tags = newsItem?.news?.imageUrl?.let { url ->
+                    try {
+                        val fetchedTags = imaggaDAO.getTags(url)
+                        database?.savedNewsDAO()?.addTags(fetchedTags, newsItem!!.news.id)
+                        fetchedTags
+                    } catch (e: Exception) {
+                        Log.e("NewsDetailsScreen", "Error fetching tags: ${e.message}")
+                        listOf("Invalid image URL")
+                    }
+                } ?: emptyList()
+
+
+                relatedNews = try {
+                    newsDAO.getSimilarStories(newsId)
                 } catch (e: Exception) {
-                    listOf("Invalid image URL")
+                    Log.e("NewsDetailsScreen", "Error fetching similar stories: ${e.message}")
+                    emptyList()
                 }
-            } ?: emptyList()
+            } else {
+
+                newsItem = database?.savedNewsDAO()?.getAllNewsWithTags()?.find { it.news.uuid == newsId }
+
+                if (newsItem != null) {
+
+                    tags = try {
+                        database?.savedNewsDAO()?.getTags(newsItem!!.news.id) ?: emptyList()
+                    } catch (e: Exception) {
+                        Log.e("NewsDetailsScreen", "Error loading tags from database: ${e.message}")
+                        emptyList()
+                    }
+
+
+                    relatedNews = if (tags.isNotEmpty()) {
+                        try {
+                            val similarNews = database?.savedNewsDAO()?.getSimilarNews(tags) ?: emptyList()
+
+                            similarNews.filter { it.news.uuid != newsId }.take(2)
+                        } catch (e: Exception) {
+                            Log.e("NewsDetailsScreen", "Error loading similar news from database: ${e.message}")
+                            emptyList()
+                        }
+                    } else {
+                        emptyList()
+                    }
+                } else {
+                    Log.w("NewsDetailsScreen", "News item not found in database: $newsId")
+                }
+            }
+
+            Log.d("NewsDetailsScreen", "Loaded news: ${newsItem?.news?.title}")
+            Log.d("NewsDetailsScreen", "Tags count: ${tags.size}")
+            Log.d("NewsDetailsScreen", "Related news count: ${relatedNews.size}")
 
             isLoading = false
         } catch (e: Exception) {
+            Log.e("NewsDetailsScreen", "Error loading data: ${e.message}")
             errorState = "Error loading data: ${e.localizedMessage}"
+
+
+            try {
+                newsItem = database?.savedNewsDAO()?.getAllNewsWithTags()?.find { it.news.uuid == newsId }
+                if (newsItem != null) {
+                    tags = database?.savedNewsDAO()?.getTags(newsItem!!.news.id) ?: emptyList()
+                    relatedNews = if (tags.isNotEmpty()) {
+                        val similarNews = database?.savedNewsDAO()?.getSimilarNews(tags) ?: emptyList()
+                        similarNews.filter { it.news.uuid != newsId }.take(2)
+                    } else {
+                        emptyList()
+                    }
+                    errorState = null
+                    Log.d("NewsDetailsScreen", "Fallback: Loaded from database successfully")
+                }
+            } catch (dbError: Exception) {
+                Log.e("NewsDetailsScreen", "Database fallback failed: ${dbError.message}")
+            }
+
             isLoading = false
         }
     }
@@ -109,13 +171,13 @@ private fun ContentState(
     ) {
         item {
             Text(
-                text = newsItem.title,
+                text = newsItem.news.title,
                 style = MaterialTheme.typography.headlineLarge,
                 modifier = Modifier.testTag("details_title")
             )
         }
         item{
-            newsItem.imageUrl?.let { url ->
+            newsItem.news?.imageUrl?.let { url ->
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(url)
@@ -132,7 +194,7 @@ private fun ContentState(
         }
         item {
             Text(
-                text = newsItem.snippet,
+                text = newsItem.news.snippet,
                 style = MaterialTheme.typography.bodyLarge
             )
         }
@@ -174,9 +236,9 @@ private fun ContentState(
 @Composable
 private fun MetadataSection(newsItem: NewsItem) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text("Kategorija: ${newsItem.category}")
-        Text("Izvor: ${newsItem.source}")
-        Text("Datum: ${newsItem.publishedDate}")
+        Text("Kategorija: ${newsItem.news.category}")
+        Text("Izvor: ${newsItem.news.source}")
+        Text("Datum: ${newsItem.news.publishedDate}")
     }
 }
 
@@ -208,14 +270,14 @@ private fun TagsSection(tags: List<String>) {
 @Composable
 private fun RelatedNewsItem(item: NewsItem, onClick: (String) -> Unit) {
     Text(
-        text = item.title,
+        text = item.news.title,
         style = MaterialTheme.typography.bodyMedium,
         modifier = Modifier
             .clickable {
-                Log.d("RelatedNewsItem", "Clicked on related news with UUID: ${item.uuid}")
-                onClick(item.uuid)
+                Log.d("RelatedNewsItem", "Clicked on related news with UUID: ${item.news.uuid}")
+                onClick(item.news.uuid)
             }
-            .testTag("related_news_${item.uuid}")
+            .testTag("related_news_${item.news.uuid}")
     )
 }
 

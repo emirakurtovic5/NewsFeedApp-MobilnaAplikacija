@@ -6,7 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
-//import etf.ri.rma.newsfeedapp.data.network.ImagaDAO
+import etf.ri.rma.newsfeedapp.data.NewsDatabase
 import etf.ri.rma.newsfeedapp.data.network.NewsDAO
 import etf.ri.rma.newsfeedapp.data.RetrofitInstance
 import etf.ri.rma.newsfeedapp.data.network.ImagaDAO
@@ -16,12 +16,13 @@ import etf.ri.rma.newsfeedapp.ui.theme.NewsTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val database = NewsDatabase.getDatabase(this)
         setContent {
             NewsTheme {
                 val navController = rememberNavController()
                 val newsDAO: NewsDAO = NewsDAO(RetrofitInstance.newsApi)
                 val imaggaDAO: ImagaDAO = ImagaDAO(RetrofitInstance.imaggaApi)
-                AppNavHost(navController = navController, newsDAO = newsDAO, imaggaDAO = imaggaDAO)
+                AppNavHost(navController = navController, newsDAO = newsDAO, imaggaDAO = imaggaDAO, database = database)
             }
         }
     }
@@ -34,6 +35,8 @@ fun PreviewNewsFeedScreen() {
         val navController = rememberNavController()
         val newsDAO: NewsDAO = NewsDAO(RetrofitInstance.newsApi)
         val imaggaDAO: ImagaDAO = ImagaDAO(RetrofitInstance.imaggaApi)
-        AppNavHost(navController = navController, newsDAO = newsDAO, imaggaDAO = imaggaDAO)
+        val context = androidx.compose.ui.platform.LocalContext.current
+        val database = NewsDatabase.getDatabase(context)
+        AppNavHost(navController = navController, newsDAO = newsDAO, imaggaDAO = imaggaDAO, database = database)
     }
 }

@@ -20,21 +20,26 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import etf.ri.rma.newsfeedapp.R
+import etf.ri.rma.newsfeedapp.model.News
 import etf.ri.rma.newsfeedapp.model.NewsItem
+import etf.ri.rma.newsfeedapp.model.Tags
 
 @Composable
 fun StandardNewsCard(
-    news: NewsItem = NewsItem(
-        uuid = "0",
-        title = "Default Title",
-        snippet = "Default Snippet",
-        source = "Default Source",
-        publishedDate = "01-01-2023",
-        isFeatured = false,
-        category = "Default Category",
-        imageUrl = "default_image_url",
-        imageTags = arrayListOf("default", "tag")
-    ), onClick: () -> Unit = {}
+    newsItem: NewsItem = NewsItem(
+        news = News(
+            uuid = "0",
+            title = "Default Title",
+            snippet = "Default Snippet",
+            source = "Default Source",
+            publishedDate = "01-01-2023",
+            isFeatured = false,
+            category = "Default Category",
+            imageUrl = "default_image_url"
+        ),
+        tags = listOf(Tags(id = 0, value = "default"))
+    ),
+    onClick: () -> Unit = {}
 ) {
     Card(
         modifier = Modifier
@@ -49,7 +54,7 @@ fun StandardNewsCard(
         ) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(news.imageUrl)
+                    .data(newsItem.news.imageUrl)
                     .crossfade(true)
                     .build(),
                 contentDescription = "News image",
@@ -62,17 +67,17 @@ fun StandardNewsCard(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = news.title,
+                    text = newsItem.news.title,
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
                 Text(
-                    text = news.snippet,
+                    text = newsItem.news.snippet,
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
                 Text(
-                    text = "${news.source} · ${news.publishedDate}",
+                    text = "${newsItem.news.source} · ${newsItem.news.publishedDate}",
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
