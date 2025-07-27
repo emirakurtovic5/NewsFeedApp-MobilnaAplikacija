@@ -1,6 +1,9 @@
 # 🗞️ NewsFeedApp — Mobilna aplikacija za vijesti
 
-**NewsFeedApp** je Android aplikacija razvijena u **Kotlinu** pomoću **Android Studija**, namijenjena za pregled i filtriranje najnovijih vijesti. Aplikacija podržava offline pristup vijestima zahvaljujući lokalnoj **SQLite** bazi podataka.
+## 📝 Opis
+
+NewsFeedApp je Android aplikacija za pregled i filtriranje vijesti, razvijena u okviru predmeta **Razvoj mobilnih aplikacija** na drugoj godini studija. Projekat je realizovan samostalno kao dio fakultetskog zadatka i demonstrira rad s vanjskim API-jem, lokalnom bazom i modernim Android komponentama.
+
 
 ---
 
